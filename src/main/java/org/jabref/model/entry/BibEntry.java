@@ -1,5 +1,8 @@
 package org.jabref.model.entry;
 
+import javax.swing.*;
+//import java.util.Calendar;
+//import java.util.GregorianCalendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +37,7 @@ import com.google.common.base.Strings;
 import com.google.common.eventbus.EventBus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import scala.runtime.Null$;
 
 public class BibEntry implements Cloneable {
 
@@ -186,6 +191,24 @@ public class BibEntry implements Cloneable {
         return fields.get(KEY_FIELD);
     }
 
+    private String Algo(){
+        String letras = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890";
+        StringBuilder aux = new StringBuilder();
+        Random random;
+        random = new Random();
+        int valor = random.nextInt(10);
+        while(valor < 3){
+            valor = random.nextInt(10);
+        }
+        aux.append(letras.charAt(valor));
+        while (aux.length() < (valor-1)){
+            int valor1 = random.nextInt(letras.length());
+            aux.append(letras.charAt(valor1));
+        }
+        String resposta = aux.toString();
+        return resposta;
+    }
+
     /**
      * Sets the cite key AKA citation key AKA BibTeX key. Note: This is <emph>not</emph> the internal Id of this entry.
      * The internal Id is always present, whereas the BibTeX key might not be present.
@@ -193,9 +216,17 @@ public class BibEntry implements Cloneable {
      * @param newCiteKey The cite key to set. Must not be null; use {@link #clearCiteKey()} to remove the cite key.
      */
     public void setCiteKey(String newCiteKey) {
-        setField(KEY_FIELD, newCiteKey);
-    }
+        String aleatoria;
 
+        //copia a entrada para testar se o primeiro caracter e letra
+        char[] aux = newCiteKey.toCharArray();
+        aleatoria = Algo();
+        if((newCiteKey.length() < 3) || Character.isDigit(aux[0])){
+            setField(KEY_FIELD, aleatoria);
+        }
+        else
+            setField(KEY_FIELD, newCiteKey);
+    }
     public Optional<String> getCiteKeyOptional() {
         return Optional.ofNullable(fields.get(KEY_FIELD));
     }
@@ -214,15 +245,15 @@ public class BibEntry implements Cloneable {
     /**
      * Sets this entry's type.
      */
-    public void setType(String type) {
-        setType(type, EntryEventSource.LOCAL);
+    public void setType(EntryType type) {
+        this.setType(type.getName());
     }
 
     /**
      * Sets this entry's type.
      */
-    public void setType(EntryType type) {
-        this.setType(type.getName());
+    public void setType(String type) {
+        setType(type, EntryEventSource.LOCAL);
     }
 
     /**
@@ -414,6 +445,55 @@ public class BibEntry implements Cloneable {
             throw new IllegalArgumentException("The field name '" + name + "' is reserved");
         }
 
+        //Calendar calendar = GregorianCalendar.getInstance();
+        //int min = 1900;
+        //int max = calendar.get(GregorianCalendar.YEAR);
+        try
+        {
+            if ("year".equals(name)) {
+                int year = Integer.parseInt(value);
+                if (value.length() == 4) {
+                    char[] digitos = value.toCharArray();
+                    if(!Character.isDigit(4)){
+
+                    }
+                    if (Character.isDigit(digitos[0]) && Character.isDigit(digitos[1]) && Character.isDigit(digitos[2]) && Character.isDigit(digitos[3])) {
+                    } else {
+                    }
+                }
+            }
+        } catch (Exception e)
+        {
+            JOptionPane.showMessageDialog(null, e.toString(), "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+/*
+        Calendar calendar = GregorianCalendar.getInstance();
+        texto = new JLabel()
+        int min = 1900;
+        int max = calendar.get(GregorianCalendar.YEAR);
+
+        if (name.equals("year")) {
+            int year = Integer.parseInt(value);
+
+            if (value.length() != 4) {
+                //clearField("year");
+                texto.setText("Preeencha corretamente o código!");
+            } else {
+                char[] digitos = value.toCharArray();
+
+                if (!Character.isDigit(digitos[0]) && !Character.isDigit(digitos[1]) && !Character.isDigit(digitos[2]) && !Character.isDigit(digitos[3])) {
+                    clearField("year");
+                    texto.setText("Preeencha corretamente o código!");
+                } else {
+                    if ((year < min) || (year > max)) {
+                        clearField("year");
+                        texto.setText("Preeencha corretamente o código!");
+                    }
+                }
+            }
+        }
+*/
         changed = true;
 
         fields.put(fieldName, value.intern());
@@ -605,7 +685,8 @@ public class BibEntry implements Cloneable {
     }
 
     public void setCommentsBeforeEntry(String parsedComments) {
-        this.commentsBeforeEntry = parsedComments;
+        // delete trailing whitespaces (between entry and text)
+        this.commentsBeforeEntry = REMOVE_TRAILING_WHITESPACE.matcher(parsedComments).replaceFirst("");
     }
 
     public boolean hasChanged() {
@@ -700,7 +781,9 @@ public class BibEntry implements Cloneable {
             return false;
         }
         BibEntry entry = (BibEntry) o;
-        return Objects.equals(type, entry.type) && Objects.equals(fields, entry.fields);
+        return Objects.equals(type, entry.type)
+                && Objects.equals(fields, entry.fields)
+                && Objects.equals(commentsBeforeEntry, entry.commentsBeforeEntry);
     }
 
     @Override
@@ -730,8 +813,7 @@ public class BibEntry implements Cloneable {
     * Returns user comments (arbitrary text before the entry), if they exist. If not, returns the empty String
      */
     public String getUserComments() {
-        // delete trailing whitespaces (between entry and text) from stored serialization
-        return REMOVE_TRAILING_WHITESPACE.matcher(commentsBeforeEntry).replaceFirst("");
+        return commentsBeforeEntry;
     }
 
     public List<ParsedEntryLink> getEntryLinkList(String fieldName, BibDatabase database) {
@@ -824,6 +906,12 @@ public class BibEntry implements Cloneable {
 
     public ObjectBinding<String> getFieldBinding(String fieldName) {
         return Bindings.valueAt(fields, fieldName);
+    }
+
+    public Optional<FieldChange> addFile(LinkedFile file) {
+        List<LinkedFile> linkedFiles = getFiles();
+        linkedFiles.add(file);
+        return setFiles(linkedFiles);
     }
 
     private interface GetFieldInterface {
