@@ -445,9 +445,6 @@ public class BibEntry implements Cloneable {
             throw new IllegalArgumentException("The field name '" + name + "' is reserved");
         }
 
-        //Calendar calendar = GregorianCalendar.getInstance();
-        //int min = 1900;
-        //int max = calendar.get(GregorianCalendar.YEAR);
         try
         {
             if ("year".equals(name)) {
@@ -467,33 +464,7 @@ public class BibEntry implements Cloneable {
             JOptionPane.showMessageDialog(null, e.toString(), "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
-/*
-        Calendar calendar = GregorianCalendar.getInstance();
-        texto = new JLabel()
-        int min = 1900;
-        int max = calendar.get(GregorianCalendar.YEAR);
 
-        if (name.equals("year")) {
-            int year = Integer.parseInt(value);
-
-            if (value.length() != 4) {
-                //clearField("year");
-                texto.setText("Preeencha corretamente o código!");
-            } else {
-                char[] digitos = value.toCharArray();
-
-                if (!Character.isDigit(digitos[0]) && !Character.isDigit(digitos[1]) && !Character.isDigit(digitos[2]) && !Character.isDigit(digitos[3])) {
-                    clearField("year");
-                    texto.setText("Preeencha corretamente o código!");
-                } else {
-                    if ((year < min) || (year > max)) {
-                        clearField("year");
-                        texto.setText("Preeencha corretamente o código!");
-                    }
-                }
-            }
-        }
-*/
         changed = true;
 
         fields.put(fieldName, value.intern());
