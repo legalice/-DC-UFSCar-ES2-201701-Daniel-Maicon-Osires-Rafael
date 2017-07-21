@@ -33,6 +33,10 @@ import org.jabref.model.database.BibDatabases;
 import org.jabref.model.entry.BibEntry;
 import org.jabref.model.strings.StringUtil;
 
+//para importar arquivo no formato CSV
+import org.jabref.logic.importer.fileformat.CSVContentImporter;
+import org.jabref.logic.importer.fileformat.CSVXmpImporter;
+
 public class ImportFormatReader {
 
     public static final String BIBTEX_FORMAT = "BibTeX";
@@ -69,6 +73,10 @@ public class ImportFormatReader {
         formats.add(new RisImporter());
         formats.add(new SilverPlatterImporter());
 
+      //pra CVS
+        formats.add(new CVSContentImporter(importFormatPreferences));
+        formats.add(new CVSXmpImporter(xmpPreferences));
+        
         // Get custom import formats
         for (CustomImporter importer : importFormatPreferences.getCustomImportList()) {
             formats.add(importer);
